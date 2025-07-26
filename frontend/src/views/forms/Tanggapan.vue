@@ -72,17 +72,54 @@
           </div>
         </template>
       </Column>
-      <Column header="Aksi">
+      <Column header="Status">
         <template #body="slotProps">
-          <Button
-            label="Tanggapi"
-            icon="pi pi-reply"
-            size="small"
-            @click="openDialog(slotProps.data)"
-            :disabled="!!slotProps.data.tanggapan"
-          />
+          <span
+            v-if="!slotProps.data.tanggapan"
+            class="p-tag p-tag-warning"
+          >
+            Harus Di Tanggapi
+          </span>
+
+          <span
+            v-else-if="closedIds.has(slotProps.data.id)"
+            class="p-tag p-tag-secondary"
+          >
+            Close Tanggapan
+          </span>
+
+          <span
+            v-else
+            class="p-tag p-tag-success"
+          >
+            Sudah Tanggapan
+          </span>
         </template>
       </Column>
+
+      <Column header="Aksi">
+        <template #body="slotProps">
+          <div class="flex gap-2">
+            <Button
+              v-if="!slotProps.data.tanggapan || !closedIds.has(slotProps.data.id)"
+              label="Tanggapi"
+              icon="pi pi-reply"
+              size="small"
+              @click="openDialog(slotProps.data)"
+            />
+
+            <Button
+              v-if="slotProps.data.tanggapan && !closedIds.has(slotProps.data.id)"
+              label="Close"
+              icon="pi pi-lock"
+              severity="danger"
+              size="small"
+              @click="handleCloseStatus(slotProps.data)"
+            />
+          </div>
+        </template>
+      </Column>
+
     </DataTable>
   </div>
 </template>
@@ -104,6 +141,8 @@ const token = localStorage.getItem('access_token')
 const showDialog = ref(false)
 const selectedItem = ref(null)
 const tanggapan = ref('')
+// const isDisableTanggapan = ref(false)
+const closedIds = ref(new Set())
 const kritikSaranList = ref([])
 
 const fetchKritikSaran = async () => {
@@ -156,9 +195,28 @@ const submitTanggapan = async () => {
   }
 }
 
+const handleCloseStatus = (item) => {
+  closedIds.value.add(item.id)
+  localStorage.setItem('closedKritikIds', JSON.stringify([...closedIds.value]))
+  toast.add({ severity: 'success', summary: 'Status Ditutup', detail: 'Status kritik dan saran ditandai closed.', life: 3000 })
+}
+
 onMounted(() => {
+  try {
+    const saved = localStorage.getItem('closedKritikIds')
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      if (Array.isArray(parsed)) {
+        closedIds.value = new Set(parsed)
+      }
+    }
+  } catch (error) {
+    console.error('Gagal memuat closed KritikIds dari localStorage:', error)
+  }
+
   fetchKritikSaran()
 })
+
 </script>
 
 <style scoped>

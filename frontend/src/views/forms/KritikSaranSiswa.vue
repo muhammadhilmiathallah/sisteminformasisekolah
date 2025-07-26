@@ -125,6 +125,11 @@
       {{ slotProps.data.siswa?.nama_lengkap_siswa || '-' }}
     </template>
   </Column> -->
+  <Column header="Guru">
+    <template #body="slotProps">
+      {{ slotProps.data.guru?.nama || '-' }}
+    </template>
+  </Column>
   <Column field="tanggapan" header="Tanggapan">
     <template #body="slotProps">
       <div class="wrap-cell">
@@ -132,9 +137,14 @@
       </div>
     </template>
   </Column>
-  <Column header="Guru">
+  <Column header="Status">
     <template #body="slotProps">
-      {{ slotProps.data.guru?.nama || '-' }}
+      <span v-if="!slotProps.data.tanggapan" class="p-tag p-tag-warning">
+        Proses
+      </span>
+      <span v-else class="p-tag p-tag-success">
+        Done
+      </span>
     </template>
   </Column>
   <Column header="Aksi" style="width: 100px">
